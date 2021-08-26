@@ -6,69 +6,62 @@
 #include <ESPAsyncWebServer.h>
 
 #include "secret.h"
+#include "switch.h"
 
-L298N switch1(D1, D2);
-L298N switch2(D3, D4);
+#define SWITCH_COUNT 2
+L298N ctrl1(D1, D2);
+L298N ctrl2(D3, D4);
+Switch switches[SWITCH_COUNT]{
+    Switch(&ctrl1),
+    Switch(&ctrl2)};
 AsyncWebServer server(8080);
 
-void switchOne(bool on) {
-    if (on) {
-        switch1.forward();
-    } else {
-        switch1.stop();
+void flipSwitch(Switch *sw, bool on)
+{
+    if (on)
+    {
+        sw->on();
+    }
+    else
+    {
+        sw->off();
     }
 }
 
-void switchTwo(bool on) {
+void handleSwitch(int ix, bool on, AsyncWebServerRequest *req)
+{
+    flipSwitch(&(switches[ix]), on);
     if (on) {
-        switch2.forward();
+        req->send(200, "text/plain", String("Switch ") + ix + " is on");
     } else {
-        switch2.stop();
+        req->send(200, "text/plain", String("Switch ") + ix + " is off");
     }
 }
-
-bool sw1_on = false;
-bool sw2_on = false;
 
 void setup()
 {
     Serial.begin(9600);
 
     WiFi.begin(ssid, password);
-    while (WiFi.status() != WL_CONNECTED) {
+    while (WiFi.status() != WL_CONNECTED)
+    {
         delay(1000);
         Serial.println("Connecting to WiFi..");
     }
 
     Serial.println(WiFi.localIP());
 
-    server.on("/switch/1/on", HTTP_GET, [](AsyncWebServerRequest *request){
-        sw1_on = true;
-        switchOne(sw1_on);
-        request->send(200, "text/html", "<h1>Switch One On</h1>");
-    });
+    server.on("/switch/1/on", HTTP_GET, [](AsyncWebServerRequest *request)
+              { handleSwitch(0, true, request); });
+    server.on("/switch/1/off", HTTP_GET, [](AsyncWebServerRequest *request)
+              { handleSwitch(0, false, request); });
+    server.on("/switch/2/on", HTTP_GET, [](AsyncWebServerRequest *request)
+              { handleSwitch(1, true, request); });
+    server.on("/switch/2/off", HTTP_GET, [](AsyncWebServerRequest *request)
+              { handleSwitch(1, false, request); });
 
-    server.on("/switch/1/off", HTTP_GET, [](AsyncWebServerRequest *request){
-        sw1_on = false;
-        switchOne(sw1_on);
-        request->send(200, "text/html", "<h1>Switch One Off</h1>");
-    });
-
-    server.on("/switch/2/on", HTTP_GET, [](AsyncWebServerRequest *request){
-        sw2_on = true;
-        switchTwo(sw1_on);
-        request->send(200, "text/html", "<h1>Switch Two On</h1>");
-    });
-
-    server.on("/switch/2/off", HTTP_GET, [](AsyncWebServerRequest *request){
-        sw2_on = false;
-        switchTwo(sw2_on);
-        request->send(200, "text/html", "<h1>Switch Two Off</h1>");
-    });
-
-    server.onNotFound([](AsyncWebServerRequest *request){
-        request->send(404, "text/html", "<h1>Not found</h1>");
-    });
+    server.onNotFound([](AsyncWebServerRequest *request)
+                      { request->send(404, "text/html", "<h1>Not found</h1>"); });
 
     server.begin();
 }
