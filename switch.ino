@@ -5,6 +5,7 @@
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 
+#include "www/generated_html.h"
 #include "secret.h"
 #include "switch.h"
 
@@ -14,7 +15,7 @@ L298N ctrl2(D3, D4);
 Switch switches[SWITCH_COUNT]{
     Switch(&ctrl1),
     Switch(&ctrl2)};
-AsyncWebServer server(8080);
+AsyncWebServer server(80);
 
 void flipSwitch(Switch *sw, bool on)
 {
@@ -38,6 +39,20 @@ void handleSwitch(int ix, bool on, AsyncWebServerRequest *req)
     }
 }
 
+void handleStatus(AsyncWebServerRequest *req)
+{
+    String result = "[\n";
+    char buffer[64];
+    for (int i = 0; i < SWITCH_COUNT; i++) {
+        snprintf(buffer, 64, "{ \"ix\": %d, \"on\": %s }", i, switches[i].status() ? "true" : "false");
+        result = result + buffer + ((i + 1 < SWITCH_COUNT) ? ",\n" : "\n");
+
+    }
+    result += "]\n";
+
+    req->send(200, "application/json", result.c_str());
+}
+
 void setup()
 {
     Serial.begin(9600);
@@ -51,6 +66,8 @@ void setup()
 
     Serial.println(WiFi.localIP());
 
+    server.on("/switch", HTTP_GET, [](AsyncWebServerRequest *request)
+              { handleStatus(request); });
     server.on("/switch/1/on", HTTP_GET, [](AsyncWebServerRequest *request)
               { handleSwitch(0, true, request); });
     server.on("/switch/1/off", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -59,6 +76,12 @@ void setup()
               { handleSwitch(1, true, request); });
     server.on("/switch/2/off", HTTP_GET, [](AsyncWebServerRequest *request)
               { handleSwitch(1, false, request); });
+    server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send(200, "application/javascript", script_js); });
+    server.on("/index.html", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send(200, "text/html", index_html); });
+    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
+              { request->send(200, "text/html", index_html); });
 
     server.onNotFound([](AsyncWebServerRequest *request)
                       { request->send(404, "text/html", "<h1>Not found</h1>"); });
