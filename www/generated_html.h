@@ -39,6 +39,10 @@ const char *index_html = R"INDEX_HTML(
             </div>
         </main>
     </div>
+    <script lang="javascript">
+        // TODO: Figure out a better way to test that the material design objects are loaded.
+        setTimeout(loadStatus, 100);
+    </script>
 </body>
 
 </html>
@@ -48,10 +52,23 @@ function handleClick(which) {
     const id = 'switch-' + which;
     const elt = document.getElementById(id);
     var verb = elt.checked ? 'on' : 'off';
-    
-    console.log(`turning ${verb} ${which}`);
 
     $.ajax(`/switch/${which}/${verb}`);
+}
+
+function updateStatus(data) {
+    data.forEach((data) => {
+        const elt = document.getElementById(`switch-${data.ix + 1}`);
+        if (data.on) {
+            elt.parentElement.MaterialSwitch.on();
+        } else {
+            elt.parentElement.MaterialSwitch.off();
+        }
+    });
+}
+
+function loadStatus() {
+    $.ajax('/switch', { 'dataType': 'json' }).done(updateStatus);
 }
 )SCRIPT_JS";
 #endif // __DATA_H__

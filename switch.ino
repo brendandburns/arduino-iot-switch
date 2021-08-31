@@ -5,6 +5,8 @@
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 
+#include <EEPROM.h>
+
 #include "www/generated_html.h"
 #include "secret.h"
 #include "switch.h"
@@ -17,6 +19,27 @@ Switch switches[SWITCH_COUNT]{
     Switch(&ctrl2)};
 AsyncWebServer server(80);
 
+void writeSwitchState() {
+    EEPROM.begin(SWITCH_COUNT);
+    for (int i = 0; i < SWITCH_COUNT; i++) {
+        EEPROM.write(i, switches[i].status() ? 1 : 0);
+    }
+    EEPROM.commit();
+    EEPROM.end();
+}
+
+void readSwitchState() {
+    EEPROM.begin(SWITCH_COUNT);
+    for (int i = 0; i < SWITCH_COUNT; i++) {
+        uint8_t value = EEPROM.read(i);
+        if (value == 1) {
+            switches[i].on();
+        } else {
+            switches[i].off();
+        }
+    }
+}
+
 void flipSwitch(Switch *sw, bool on)
 {
     if (on)
@@ -27,6 +50,7 @@ void flipSwitch(Switch *sw, bool on)
     {
         sw->off();
     }
+    writeSwitchState();
 }
 
 void handleSwitch(int ix, bool on, AsyncWebServerRequest *req)
@@ -66,8 +90,8 @@ void setup()
 
     Serial.println(WiFi.localIP());
 
-    server.on("/switch", HTTP_GET, [](AsyncWebServerRequest *request)
-              { handleStatus(request); });
+    readSwitchState();
+
     server.on("/switch/1/on", HTTP_GET, [](AsyncWebServerRequest *request)
               { handleSwitch(0, true, request); });
     server.on("/switch/1/off", HTTP_GET, [](AsyncWebServerRequest *request)
@@ -76,6 +100,9 @@ void setup()
               { handleSwitch(1, true, request); });
     server.on("/switch/2/off", HTTP_GET, [](AsyncWebServerRequest *request)
               { handleSwitch(1, false, request); });
+    server.on("/switch", HTTP_GET, [](AsyncWebServerRequest *request)
+              { handleStatus(request); });
+
     server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request)
               { request->send(200, "application/javascript", script_js); });
     server.on("/index.html", HTTP_GET, [](AsyncWebServerRequest *request)
