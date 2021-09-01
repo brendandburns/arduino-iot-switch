@@ -11,31 +11,39 @@
 #include "secret.h"
 #include "switch.h"
 
-#define SWITCH_COUNT 2
+#define SWITCH_COUNT 3
 L298N ctrl1(D1, D2);
 L298N ctrl2(D3, D4);
-Switch switches[SWITCH_COUNT]{
-    Switch(&ctrl1),
-    Switch(&ctrl2)};
+Switch *switches[SWITCH_COUNT]{
+    new MotorControllerSwitch("Fountain", &ctrl1),
+    new MotorControllerSwitch("Light", &ctrl2),
+    new SerialSwitch()};
 AsyncWebServer server(80);
 
-void writeSwitchState() {
+void writeSwitchState()
+{
     EEPROM.begin(SWITCH_COUNT);
-    for (int i = 0; i < SWITCH_COUNT; i++) {
-        EEPROM.write(i, switches[i].status() ? 1 : 0);
+    for (int i = 0; i < SWITCH_COUNT; i++)
+    {
+        EEPROM.write(i, switches[i]->status() ? 1 : 0);
     }
     EEPROM.commit();
     EEPROM.end();
 }
 
-void readSwitchState() {
+void readSwitchState()
+{
     EEPROM.begin(SWITCH_COUNT);
-    for (int i = 0; i < SWITCH_COUNT; i++) {
+    for (int i = 0; i < SWITCH_COUNT; i++)
+    {
         uint8_t value = EEPROM.read(i);
-        if (value == 1) {
-            switches[i].on();
-        } else {
-            switches[i].off();
+        if (value == 1)
+        {
+            switches[i]->on();
+        }
+        else
+        {
+            switches[i]->off();
         }
     }
 }
@@ -55,10 +63,13 @@ void flipSwitch(Switch *sw, bool on)
 
 void handleSwitch(int ix, bool on, AsyncWebServerRequest *req)
 {
-    flipSwitch(&(switches[ix]), on);
-    if (on) {
+    flipSwitch(switches[ix], on);
+    if (on)
+    {
         req->send(200, "text/plain", String("Switch ") + ix + " is on");
-    } else {
+    }
+    else
+    {
         req->send(200, "text/plain", String("Switch ") + ix + " is off");
     }
 }
@@ -66,11 +77,16 @@ void handleSwitch(int ix, bool on, AsyncWebServerRequest *req)
 void handleStatus(AsyncWebServerRequest *req)
 {
     String result = "[\n";
-    char buffer[64];
-    for (int i = 0; i < SWITCH_COUNT; i++) {
-        snprintf(buffer, 64, "{ \"ix\": %d, \"on\": %s }", i, switches[i].status() ? "true" : "false");
+    char buffer[128];
+    for (int i = 0; i < SWITCH_COUNT; i++)
+    {
+        Switch *sw = switches[i];
+        snprintf(buffer, 64,
+                 "{ \"ix\": %d, \"on\": %s, \"name\": \"%s\" }",
+                 i,
+                 sw->status() ? "true" : "false",
+                 sw->name());
         result = result + buffer + ((i + 1 < SWITCH_COUNT) ? ",\n" : "\n");
-
     }
     result += "]\n";
 
@@ -92,14 +108,17 @@ void setup()
 
     readSwitchState();
 
-    server.on("/switch/1/on", HTTP_GET, [](AsyncWebServerRequest *request)
-              { handleSwitch(0, true, request); });
-    server.on("/switch/1/off", HTTP_GET, [](AsyncWebServerRequest *request)
-              { handleSwitch(0, false, request); });
-    server.on("/switch/2/on", HTTP_GET, [](AsyncWebServerRequest *request)
-              { handleSwitch(1, true, request); });
-    server.on("/switch/2/off", HTTP_GET, [](AsyncWebServerRequest *request)
-              { handleSwitch(1, false, request); });
+    for (int i = 0; i < SWITCH_COUNT; i++)
+    {
+        char buffer[32];
+        snprintf(buffer, 32, "/switch/%d/on", i);
+        server.on(buffer, HTTP_GET, [i](AsyncWebServerRequest *request)
+                  { handleSwitch(i, true, request); });
+        snprintf(buffer, 32, "/switch/%d/off", i);
+        server.on(buffer, HTTP_GET, [i](AsyncWebServerRequest *request)
+                  { handleSwitch(i, false, request); });
+    }
+
     server.on("/switch", HTTP_GET, [](AsyncWebServerRequest *request)
               { handleStatus(request); });
 

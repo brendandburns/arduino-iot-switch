@@ -1,4 +1,5 @@
 [
-{ "ix": 0, "on": true },
-{ "ix": 1, "on": false }
+{ "ix": 0, "on": true, "name": "Fountain" },
+{ "ix": 1, "on": false, "name": "Light" },
+{ "ix": 2, "on": true, "name": "Serial" }
 ]

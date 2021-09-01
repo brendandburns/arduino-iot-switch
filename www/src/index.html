@@ -3,7 +3,7 @@
 <head>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
-    <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.6.0.min.js"></script>
     <script lang="javascript" src="./script.js">
     </script>
@@ -22,23 +22,15 @@
                 <div class="mdl-card__title">
                     <h2 class="mdl-card__title-text">Switches</h2>
                 </div>
-                <div class="mdl-card__supporting-text">
-                    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-1">
-                        <span class="mdl-switch__label">Fountain</span>
-                        <input type="checkbox" id="switch-1" class="mdl-switch__input" checked onclick="handleClick('1')">
-                    </label>
-                    <p></p>
-                    <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-2">
-                        <span class="mdl-switch__label">Light</span>
-                        <input type="checkbox" id="switch-2" class="mdl-switch__input" checked onclick="handleClick('2')">
-                    </label>
+                <div class="mdl-card__supporting-text" id='switches'>
                 </div>
             </div>
         </main>
     </div>
     <script lang="javascript">
         // TODO: Figure out a better way to test that the material design objects are loaded.
-        setTimeout(loadStatus, 100);
+        // setTimeout(loadStatus, 100);
+        createSwitches();
     </script>
 </body>
 
