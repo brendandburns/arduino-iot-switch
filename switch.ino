@@ -7,6 +7,8 @@
 
 #include <EEPROM.h>
 
+#include <Button2.h>
+
 #include "www/generated_html.h"
 #include "secret.h"
 #include "switch.h"
@@ -19,6 +21,10 @@ Switch *switches[SWITCH_COUNT]{
     new MotorControllerSwitch("Light", &ctrl2),
     new SerialSwitch()};
 AsyncWebServer server(80);
+
+#define BUTTON_PIN 10
+
+Button2 button(BUTTON_PIN);
 
 void writeSwitchState()
 {
@@ -133,6 +139,8 @@ void setup()
                       { request->send(404, "text/html", "<h1>Not found</h1>"); });
 
     server.begin();
+
+    button.setClickHandler([](Button2& btn) { switches[0]->toggle(); });
 }
 
 void loop()

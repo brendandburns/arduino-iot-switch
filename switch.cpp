@@ -2,6 +2,20 @@
 
 #include <Arduino.h>
 
+MultiSwitch::MultiSwitch(const char* name, Switch** switches, uint8_t count) : Switch(name), switches(switches), count(count) {
+    this->off();
+}
+
+void MultiSwitch::update(bool state) {
+    for (int i = 0; i < this->count; i++) {
+        if (state) {
+            switches[i]->on();
+        } else {
+            switches[i]->off();
+        }
+    }
+}
+
 MotorControllerSwitch::MotorControllerSwitch(const char* name, MotorController* controller) : Switch(name), controller(controller) {
     this->off();
 }

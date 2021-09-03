@@ -27,6 +27,7 @@
                 "/home/bburns/Arduino/libraries/ESPAsyncWebServer/src",
                 "/home/bburns/.arduino15/packages/esp8266/hardware/esp8266/2.7.4/libraries/Hash/src",
                 "/home/bburns/.arduino15/packages/esp8266/hardware/esp8266/2.7.4/libraries/EEPROM",
+                "/home/bburns/Arduino/libraries/Button2/src",
                 "/home/bburns/Arduino/libraries/Encoder",
                 "/home/bburns/Arduino/libraries/PID",
                 "/home/bburns/.arduino15/packages/esp8266/tools/xtensa-lx106-elf-gcc/2.5.0-4-b40a506/xtensa-lx106-elf/include/c++/4.8.2",
