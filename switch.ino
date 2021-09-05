@@ -22,7 +22,7 @@ Switch *switches[SWITCH_COUNT]{
     new SerialSwitch()};
 AsyncWebServer server(80);
 
-#define BUTTON_PIN 10
+#define BUTTON_PIN D5
 
 Button2 button(BUTTON_PIN);
 
@@ -99,6 +99,10 @@ void handleStatus(AsyncWebServerRequest *req)
     req->send(200, "application/json", result.c_str());
 }
 
+void clickButton(Button2& btn) {
+    switches[2]->toggle();
+}
+
 void setup()
 {
     Serial.begin(9600);
@@ -140,10 +144,11 @@ void setup()
 
     server.begin();
 
-    button.setClickHandler([](Button2& btn) { switches[0]->toggle(); });
+    button.setClickHandler(clickButton);
+    button.setLongClickDetectedHandler(clickButton);
 }
 
 void loop()
 {
-    delay(5000);
+    button.loop();
 }
