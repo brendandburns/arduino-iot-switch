@@ -14,9 +14,7 @@ void DelegateSwitch::handleUpdate(bool state, Switch* sw) {
 }
 
 
-MultiSwitch::MultiSwitch(const char* name, Switch** switches, uint8_t count) : DelegateSwitch(name, NULL), switches(switches), count(count) {
-    this->off();
-}
+MultiSwitch::MultiSwitch(const char* name, Switch** switches, uint8_t count) : Switch(name), switches(switches), count(count) {}
 
 void MultiSwitch::update(bool state) {
     for (int i = 0; i < this->count; i++) {
@@ -24,9 +22,7 @@ void MultiSwitch::update(bool state) {
     }
 }
 
-MotorControllerSwitch::MotorControllerSwitch(const char* name, MotorController* controller) : Switch(name), controller(controller) {
-    this->off();
-}
+MotorControllerSwitch::MotorControllerSwitch(const char* name, MotorController* controller) : Switch(name), controller(controller) {}
 
 void MotorControllerSwitch::update(bool state) {
     if (state) {
@@ -38,7 +34,6 @@ void MotorControllerSwitch::update(bool state) {
 
 PinSwitch::PinSwitch(const char* name, uint8_t pin, uint8_t on_value, uint8_t off_value) : Switch(name), pin(pin), on_value(on_value), off_value(off_value) {
     pinMode(this->pin, OUTPUT);
-    this->off();
 }
 
 void PinSwitch::update(bool state) {

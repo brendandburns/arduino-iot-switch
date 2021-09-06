@@ -12,9 +12,8 @@ void clickHandler(Button2& button) {
     sw->toggle();
 }
 
-ButtonSwitch::ButtonSwitch(const char* name, Button2* button, Switch* sw) : DelegateSwitch(name, sw), button(button) {
+ButtonSwitch::ButtonSwitch(Button2* button, Switch* sw) : DelegateSwitch(sw), button(button) {
     buttonMap[button->getAttachPin()] = this;
     button->setClickHandler(clickHandler);
     button->setLongClickHandler(clickHandler);
-    this->off();
 }

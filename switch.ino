@@ -9,10 +9,12 @@
 
 #include <Button2.h>
 
-#include "www/generated_html.h"
-#include "secret.h"
-#include "switch.h"
 #include "button_switch.h"
+#include "persistent_switch.h"
+#include "secret.h"
+#include "storage.h"
+#include "switch.h"
+#include "www/generated_html.h"
 
 #define BUTTON_PIN D5
 Button2 button(BUTTON_PIN);
@@ -20,63 +22,24 @@ Button2 button(BUTTON_PIN);
 #define SWITCH_COUNT 3
 L298N ctrl1(D1, D2);
 L298N ctrl2(D3, D4);
+
 Switch *switches[SWITCH_COUNT]{
-    new MotorControllerSwitch("Fountain", &ctrl1),
-    new MotorControllerSwitch("Light", &ctrl2),
-    new ButtonSwitch("SerialButton", &button, new SerialSwitch())};
+    new PersistentSwitch(new MotorControllerSwitch("Fountain", &ctrl1), switches, SWITCH_COUNT),
+    new PersistentSwitch(new MotorControllerSwitch("Light", &ctrl2), switches, SWITCH_COUNT),
+    new ButtonSwitch(&button, new SerialSwitch())};
 
 AsyncWebServer server(80);
 
-void writeSwitchState()
-{
-    EEPROM.begin(SWITCH_COUNT);
-    for (int i = 0; i < SWITCH_COUNT; i++)
-    {
-        EEPROM.write(i, switches[i]->status() ? 1 : 0);
-    }
-    EEPROM.commit();
-    EEPROM.end();
-}
-
-void readSwitchState()
-{
-    EEPROM.begin(SWITCH_COUNT);
-    for (int i = 0; i < SWITCH_COUNT; i++)
-    {
-        uint8_t value = EEPROM.read(i);
-        if (value == 1)
-        {
-            switches[i]->on();
-        }
-        else
-        {
-            switches[i]->off();
-        }
-    }
-}
-
-void flipSwitch(Switch *sw, bool on)
-{
-    if (on)
-    {
-        sw->on();
-    }
-    else
-    {
-        sw->off();
-    }
-    writeSwitchState();
-}
-
 void handleSwitch(int ix, bool on, AsyncWebServerRequest *req)
 {
-    flipSwitch(switches[ix], on);
     if (on)
     {
+        switches[ix]->on();
         req->send(200, "text/plain", String("Switch ") + ix + " is on");
     }
     else
     {
+        switches[ix]->off();
         req->send(200, "text/plain", String("Switch ") + ix + " is off");
     }
 }
@@ -113,7 +76,8 @@ void setup()
 
     Serial.println(WiFi.localIP());
 
-    readSwitchState();
+    readSwitchState(switches, SWITCH_COUNT);
+    PersistentSwitch::begin();
 
     for (int i = 0; i < SWITCH_COUNT; i++)
     {

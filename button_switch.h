@@ -8,5 +8,5 @@ class ButtonSwitch: public DelegateSwitch {
         Button2* button;
     
     public:
-        ButtonSwitch(const char* name, Button2* button, Switch *sw);
+        ButtonSwitch(Button2* button, Switch *sw);
 };

@@ -19,7 +19,7 @@ class Switch {
         bool status() { return _on; }
         const char* name() { return _name.c_str(); }
     
-    private:
+    protected:
         virtual void update(bool state) = 0;
 };
 
@@ -28,23 +28,24 @@ class DelegateSwitch : public Switch {
         Switch* delegate;
     
     public:
-        DelegateSwitch(const char* name, Switch* delegate) : Switch(name), delegate(delegate) { this->off(); }
-    
-    private:
-        virtual void update(bool state) { DelegateSwitch::handleUpdate(state, delegate); }
+        DelegateSwitch(Switch* delegate) : Switch(delegate->name()), delegate(delegate) {}
     
     protected:
+        virtual void update(bool state) { DelegateSwitch::handleUpdate(state, delegate); }
+    
+    public:
         static void handleUpdate(bool state, Switch* sw);
 };
 
-class MultiSwitch : public DelegateSwitch {
+class MultiSwitch : public Switch {
     private:
         uint8_t count;
         Switch** switches;
     
     public:
         MultiSwitch(const char* name, Switch* switches[], uint8_t count);
-    private:
+    
+    protected:
         virtual void update(bool state);
 };
 
@@ -55,7 +56,7 @@ class MotorControllerSwitch : public Switch {
     public:
         MotorControllerSwitch(const char* name, MotorController* controller);
     
-    private:
+    protected:
         virtual void update(bool state);
 };
 
@@ -68,14 +69,14 @@ class PinSwitch : public Switch {
     public:
         PinSwitch(const char* name, uint8_t pin, uint8_t on_value, uint8_t off_value);
 
-    private:
+    protected:
         virtual void update(bool state);
 };
 
 class SerialSwitch : public Switch {
     public:
         SerialSwitch();
-    private:
+    protected:
         virtual void update(bool state);
 };
 
