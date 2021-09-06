@@ -2,17 +2,25 @@
 
 #include <Arduino.h>
 
-MultiSwitch::MultiSwitch(const char* name, Switch** switches, uint8_t count) : Switch(name), switches(switches), count(count) {
+void DelegateSwitch::handleUpdate(bool state, Switch* sw) {
+    Serial.println("Handling update!");
+    if (!sw) return;
+    
+    if (state) {
+        sw->on();
+    } else {
+        sw->off();
+    }
+}
+
+
+MultiSwitch::MultiSwitch(const char* name, Switch** switches, uint8_t count) : DelegateSwitch(name, NULL), switches(switches), count(count) {
     this->off();
 }
 
 void MultiSwitch::update(bool state) {
     for (int i = 0; i < this->count; i++) {
-        if (state) {
-            switches[i]->on();
-        } else {
-            switches[i]->off();
-        }
+        DelegateSwitch::handleUpdate(state, this->switches[i]);
     }
 }
 

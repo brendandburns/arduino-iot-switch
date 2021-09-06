@@ -12,6 +12,10 @@
 #include "www/generated_html.h"
 #include "secret.h"
 #include "switch.h"
+#include "button_switch.h"
+
+#define BUTTON_PIN D5
+Button2 button(BUTTON_PIN);
 
 #define SWITCH_COUNT 3
 L298N ctrl1(D1, D2);
@@ -19,12 +23,9 @@ L298N ctrl2(D3, D4);
 Switch *switches[SWITCH_COUNT]{
     new MotorControllerSwitch("Fountain", &ctrl1),
     new MotorControllerSwitch("Light", &ctrl2),
-    new SerialSwitch()};
+    new ButtonSwitch("SerialButton", &button, new SerialSwitch())};
+
 AsyncWebServer server(80);
-
-#define BUTTON_PIN D5
-
-Button2 button(BUTTON_PIN);
 
 void writeSwitchState()
 {
@@ -99,10 +100,6 @@ void handleStatus(AsyncWebServerRequest *req)
     req->send(200, "application/json", result.c_str());
 }
 
-void clickButton(Button2& btn) {
-    switches[2]->toggle();
-}
-
 void setup()
 {
     Serial.begin(9600);
@@ -143,9 +140,6 @@ void setup()
                       { request->send(404, "text/html", "<h1>Not found</h1>"); });
 
     server.begin();
-
-    button.setClickHandler(clickButton);
-    button.setLongClickDetectedHandler(clickButton);
 }
 
 void loop()

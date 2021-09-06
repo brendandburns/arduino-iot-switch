@@ -23,14 +23,27 @@ class Switch {
         virtual void update(bool state) = 0;
 };
 
-class MultiSwitch : public Switch {
+class DelegateSwitch : public Switch {
+    private:
+        Switch* delegate;
+    
+    public:
+        DelegateSwitch(const char* name, Switch* delegate) : Switch(name), delegate(delegate) { this->off(); }
+    
+    private:
+        virtual void update(bool state) { DelegateSwitch::handleUpdate(state, delegate); }
+    
+    protected:
+        static void handleUpdate(bool state, Switch* sw);
+};
+
+class MultiSwitch : public DelegateSwitch {
     private:
         uint8_t count;
         Switch** switches;
     
     public:
         MultiSwitch(const char* name, Switch* switches[], uint8_t count);
-    
     private:
         virtual void update(bool state);
 };
