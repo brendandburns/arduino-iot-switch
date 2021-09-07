@@ -11,6 +11,7 @@ void PersistentSwitch::update(bool state) {
     }
 }
 
-void PersistentSwitch::begin() {
+void PersistentSwitch::begin(Switch **switches, size_t count) {
+    readSwitchState(switches, count);
     begun = true;
 }

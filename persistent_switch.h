@@ -15,7 +15,7 @@ class PersistentSwitch : public DelegateSwitch {
         virtual void update(bool state);
 
     public:
-        static void begin();
+        static void begin(Switch** switches, size_t count);
 };
 
 #endif

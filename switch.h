@@ -76,6 +76,7 @@ class PinSwitch : public Switch {
 class SerialSwitch : public Switch {
     public:
         SerialSwitch();
+        SerialSwitch(const char* name);
     protected:
         virtual void update(bool state);
 };

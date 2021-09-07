@@ -44,7 +44,9 @@ void PinSwitch::update(bool state) {
     }
 }
 
-SerialSwitch::SerialSwitch() : Switch("Serial") {}
+SerialSwitch::SerialSwitch() : SerialSwitch("Serial") {}
+
+SerialSwitch::SerialSwitch(const char* name) : Switch(name) {}
 
 void SerialSwitch::update(bool state) {
     Serial.println(state ? "ON!" : "OFF!");

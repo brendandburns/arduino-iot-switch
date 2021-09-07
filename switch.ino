@@ -12,9 +12,8 @@
 #include "button_switch.h"
 #include "persistent_switch.h"
 #include "secret.h"
-#include "storage.h"
+#include "server.h"
 #include "switch.h"
-#include "www/generated_html.h"
 
 #define BUTTON_PIN D5
 Button2 button(BUTTON_PIN);
@@ -24,44 +23,16 @@ L298N ctrl1(D1, D2);
 L298N ctrl2(D3, D4);
 
 Switch *switches[SWITCH_COUNT]{
-    new PersistentSwitch(new MotorControllerSwitch("Fountain", &ctrl1), switches, SWITCH_COUNT),
+    new ButtonSwitch(
+        &button,
+        new MultiSwitch("Fountain", new Switch*[2] {
+            new PersistentSwitch(new MotorControllerSwitch("Fountain", &ctrl1), switches, SWITCH_COUNT),
+            new PinSwitch("Ring", D6, HIGH, LOW)
+        }, 2)),
     new PersistentSwitch(new MotorControllerSwitch("Light", &ctrl2), switches, SWITCH_COUNT),
-    new ButtonSwitch(&button, new SerialSwitch())};
+    new SerialSwitch("Test")};
 
-AsyncWebServer server(80);
-
-void handleSwitch(int ix, bool on, AsyncWebServerRequest *req)
-{
-    if (on)
-    {
-        switches[ix]->on();
-        req->send(200, "text/plain", String("Switch ") + ix + " is on");
-    }
-    else
-    {
-        switches[ix]->off();
-        req->send(200, "text/plain", String("Switch ") + ix + " is off");
-    }
-}
-
-void handleStatus(AsyncWebServerRequest *req)
-{
-    String result = "[\n";
-    char buffer[128];
-    for (int i = 0; i < SWITCH_COUNT; i++)
-    {
-        Switch *sw = switches[i];
-        snprintf(buffer, 64,
-                 "{ \"ix\": %d, \"on\": %s, \"name\": \"%s\" }",
-                 i,
-                 sw->status() ? "true" : "false",
-                 sw->name());
-        result = result + buffer + ((i + 1 < SWITCH_COUNT) ? ",\n" : "\n");
-    }
-    result += "]\n";
-
-    req->send(200, "application/json", result.c_str());
-}
+SwitchServer server(switches, SWITCH_COUNT, 80);
 
 void setup()
 {
@@ -76,33 +47,7 @@ void setup()
 
     Serial.println(WiFi.localIP());
 
-    readSwitchState(switches, SWITCH_COUNT);
-    PersistentSwitch::begin();
-
-    for (int i = 0; i < SWITCH_COUNT; i++)
-    {
-        char buffer[32];
-        snprintf(buffer, 32, "/switch/%d/on", i);
-        server.on(buffer, HTTP_GET, [i](AsyncWebServerRequest *request)
-                  { handleSwitch(i, true, request); });
-        snprintf(buffer, 32, "/switch/%d/off", i);
-        server.on(buffer, HTTP_GET, [i](AsyncWebServerRequest *request)
-                  { handleSwitch(i, false, request); });
-    }
-
-    server.on("/switch", HTTP_GET, [](AsyncWebServerRequest *request)
-              { handleStatus(request); });
-
-    server.on("/script.js", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send(200, "application/javascript", script_js); });
-    server.on("/index.html", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send(200, "text/html", index_html); });
-    server.on("/", HTTP_GET, [](AsyncWebServerRequest *request)
-              { request->send(200, "text/html", index_html); });
-
-    server.onNotFound([](AsyncWebServerRequest *request)
-                      { request->send(404, "text/html", "<h1>Not found</h1>"); });
-
+    PersistentSwitch::begin(switches, SWITCH_COUNT);
     server.begin();
 }
 
