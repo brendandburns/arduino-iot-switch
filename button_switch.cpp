@@ -5,7 +5,7 @@
 ButtonSwitch* buttonMap[MAX_PINS] = {};
 
 void clickHandler(Button2& button) {
-    Switch* sw = buttonMap[button.getAttachPin()];
+    Switch* sw = buttonMap[button.getPin()];
     if (sw == NULL) {
         return;
     }
@@ -13,7 +13,7 @@ void clickHandler(Button2& button) {
 }
 
 ButtonSwitch::ButtonSwitch(Button2* button, Switch* sw) : DelegateSwitch(sw), button(button) {
-    buttonMap[button->getAttachPin()] = this;
+    buttonMap[button->getPin()] = this;
     button->setClickHandler(clickHandler);
     button->setLongClickHandler(clickHandler);
 }

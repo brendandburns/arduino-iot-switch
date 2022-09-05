@@ -1,0 +1,55 @@
+#ifndef __DATA_H__
+#define __DATA_H__
+const char *config_index_html = R"CONFIG_INDEX_HTM(
+<html>
+    <head>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+        <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+        <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.6.0.min.js"></script>
+        </script>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    
+    <body>
+        <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+            <header class="mdl-layout__header">
+                <div class="mdl-layout__header-row">
+                    <span class="mdl-layout-title">WiFi Configuration</span>
+                </div>
+            </header>
+            <main class="mdl-layout__content" style="padding: 10px 30px">
+                <div class="mdl-card mdl-shadow--2dp">
+                    <div class="mdl-card__title">
+                        <h2 class="mdl-card__title-text">Network Configuration</h2>
+                        <form action="javascript:void(0);">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                <input class="mdl-textfield__input" type="text" id="ssid">
+                                <label class="mdl-textfield__label" for="ssid">SSID...</label>
+                            </div>
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                <input class="mdl-textfield__input" type="password" id="password">
+                                <label class="mdl-textfield__label" for="password">Password...</label>
+                            </div>
+                            <p></p>
+                            <button class="mdl-button mdl-js-button mdl-button--raised" onclick="handleSave();">Save</button>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <script lang="javascript">
+            function handleSave() {
+                const ssid = document.getElementById('ssid').value;
+                const password = document.getElementById('password').value;
+
+                const req = new XMLHttpRequest();
+                req.open("GET", `/update?ssid=${ssid}&password=${password}`);
+                req.send();
+            }
+        </script>
+    </body>
+</html>
+
+)CONFIG_INDEX_HTM";
+#endif // __DATA_H__
